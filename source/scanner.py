@@ -107,6 +107,8 @@ def skip_whitespace():
                 advance()
 
             # Jump the new line
+            scanner.line += 1
+            scanner.column = 1
             advance()
             break
         else:

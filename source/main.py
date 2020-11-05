@@ -5,14 +5,16 @@ from coloring    import success
 # Get code input
 code = ""
 done = False
+line = 1
 
 while (not done):
 
-    x = input(("\033[94m> "))
+    x = input("\033[94m{0}. ".format(line))
     if (x == "\\0"):
         done = True
     else:
-        code += x + " "
+        code += x + "\n"
+        line += 1
 
 print("\033[0m")
 
