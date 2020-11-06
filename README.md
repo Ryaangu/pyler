@@ -4,10 +4,9 @@
 # 🤔 How to use?
 > Go to `pyler` directory and type: `cmd\run_python.cmd` in a command line.
 
-# ⌨ Example Code
+# ⌨ Simple Hello World Example
 ```py
-hi = "Hello, World!"
-print hi
-\0
+1. print "Hello, World!"
+2. \0
 ```
 > ⚠ **NOTE**: `\0` tells the compiler to compile the code you wrote.
