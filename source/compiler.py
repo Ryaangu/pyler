@@ -264,6 +264,9 @@ def print_statement():
     expression()
     emit_byte(OpCode.Print)
 
+    # Optional Semicolon
+    match(TokenType.Semicolon)
+
 # Block
 def block():
 
@@ -304,6 +307,9 @@ def identifier(is_expression = False):
 
         if (is_expression):
             emit_bytes(OpCode.GetGlobal, variable)
+        else:
+            # Optional Semicolon
+            match(TokenType.Semicolon)
     else:
         emit_bytes(OpCode.GetGlobal, variable)
 

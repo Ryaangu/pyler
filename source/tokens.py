@@ -55,6 +55,8 @@ class TokenType(Enum):
     Return   = 45 # return
     True_    = 46 # true
     While    = 47 # while
+    Global   = 48 # global
+    Var      = 49 # var
 
 # Token
 class Token():

@@ -28,7 +28,9 @@ keywords = {
     "print":    TokenType.Print,
     "return":   TokenType.Return,
     "true":     TokenType.True_,
-    "while":    TokenType.While
+    "while":    TokenType.While,
+    "global":   TokenType.Global,
+    "var":      TokenType.Var
 }
 
 # Initialize Scanner
