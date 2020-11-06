@@ -4,7 +4,7 @@
 ## 🤔 How to use?
 > Go to `pyler` directory and type: `cmd\run_python.cmd` in a command line.
 
-## ⌨ Simple Hello World Example
+## ⌨ Hello World Example
 ```py
 1. print "Hello, World!"
 2. \0
