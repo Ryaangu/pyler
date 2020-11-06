@@ -12,10 +12,11 @@ class Compiler():
     previous = None
     current  = None
 
-    had_error = False
-    depth     = -1
+    had_error   = False
+    scope_depth = 0
 
-    variables = []
+    global_variables = []
+    local_variables  = []
 
 compiler = Compiler()
 
@@ -50,6 +51,18 @@ def error(kind, message):
 # Error at current token
 def error_current(kind, message):
     error_at(kind, message, compiler.current)
+
+# Begin scope
+def begin_scope():
+    compiler.scope_depth += 1
+
+# End scope
+def end_scope():
+    compiler.scope_depth -= 1
+
+    # Clear local variables array
+    if (compiler.scope_depth == 0):
+        compiler.local_variables = []
 
 # Advance Token
 def advance():
@@ -182,9 +195,8 @@ def literal():
     elif (match(TokenType.Number)):     emit_constant(get_number())
     elif (match(TokenType.String)):     emit_constant(get_string())
     elif (match(TokenType.LeftParen)):  grouping()
-    elif (match(TokenType.Identifier)): identifier(True)
+    elif (match(TokenType.Identifier)): variable_assignment(True)
     else:
-        print(compiler.previous.kind, compiler.current.kind)
         error_current("Syntax Error", "Unexpected token.")
 
 # Unary
@@ -270,11 +282,17 @@ def print_statement():
 # Block
 def block():
 
+    # Begin scope
+    begin_scope()
+
     while (not match(TokenType.RightBrace) and not match(TokenType.End)):
         statement()
 
     if (compiler.previous.kind == TokenType.End):
-        error_current("Syntax Error", "Expect '}' after statement(s).")
+        error_current("Syntax Error", "Expect '}' after statement.")
+
+    # End scope
+    end_scope()
 
 # If Statement
 def if_statement():
@@ -296,22 +314,82 @@ def if_statement():
 
     patch_jump(else_jump)
 
-# Identifier
-def identifier(is_expression = False):
+# Variable assignment
+def variable_assignment(is_expression = False):
 
+    # Check if variable exists
+    if (not (compiler.previous.content in compiler.global_variables or compiler.previous.content in compiler.local_variables)):
+        emit_byte(OpCode.Null)
+        error("Compile Error", "The variable '{0}' is not declared!".format(compiler.previous.content))
+        return
+
+    # Make the variable
     variable = make_constant(compiler.previous.content)
 
-    if (match(TokenType.Equal)):
-        expression()
-        emit_bytes(OpCode.SetGlobal, variable)
+    # Get the opcodes
+    opcode_set = OpCode.SetGlobal
+    opcode_get = OpCode.GetGlobal
 
+    if (compiler.scope_depth > 0): # Local
+        opcode_set = OpCode.SetLocal
+        opcode_get = OpCode.GetLocal
+
+    # Declare the variable
+    if (match(TokenType.Equal)): 
+        expression()
+        emit_bytes(opcode_set, variable)
+
+        # Is assigning inside an expression
         if (is_expression):
-            emit_bytes(OpCode.GetGlobal, variable)
+            emit_bytes(opcode_get, variable)
         else:
             # Optional Semicolon
             match(TokenType.Semicolon)
     else:
-        emit_bytes(OpCode.GetGlobal, variable)
+        emit_bytes(opcode_get, variable)
+
+# Variable declaration
+def variable_declaration(force_global = False):
+
+    # Check if variable exists
+    if (compiler.previous.content in compiler.global_variables or compiler.previous.content in compiler.local_variables):
+        emit_byte(OpCode.Null)
+        error("Compile Error", "The variable '{0}' is already declared!".format(compiler.previous.content))
+        return
+
+    # Expect identifier
+    if (force_global):
+        consume(TokenType.Identifier, "Syntax Error", "Expect variable name after 'global'.")
+    else:
+        consume(TokenType.Identifier, "Syntax Error", "Expect variable name after 'var'.")
+
+    # Make the variable
+    variable = make_constant(compiler.previous.content)
+
+    # Get the opcode
+    opcode_set = OpCode.SetGlobal
+
+    if (compiler.scope_depth > 0 and not force_global): # Local
+        opcode_set = OpCode.SetLocal
+
+    # Declare the variable
+    if (compiler.scope_depth > 0 and not force_global):
+        compiler.local_variables.append(compiler.previous.content)
+    else:
+        compiler.global_variables.append(compiler.previous.content)
+
+    if (match(TokenType.Equal)): 
+        expression()
+        emit_bytes(opcode_set, variable)
+
+        # Optional Semicolon
+        match(TokenType.Semicolon)
+    else:
+        emit_byte(OpCode.Null)
+        emit_bytes(opcode_set, variable)
+
+        # Optional Semicolon
+        match(TokenType.Semicolon)
 
 # Statement
 def statement():
@@ -329,9 +407,13 @@ def statement():
     elif (token == TokenType.LeftBrace):
         block()
     elif (token == TokenType.Identifier):
-        identifier()
+        variable_assignment()
+    elif (token == TokenType.Var):
+        variable_declaration()
+    elif (token == TokenType.Global):
+        variable_declaration(True)
     else:
-        error("Compile Error", "Expect statement(s).")
+        error("Compile Error", "Expect statement.")
 
 # Compile
 def compile(source):

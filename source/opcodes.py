@@ -28,3 +28,5 @@ class OpCode(Enum):
     Pop          = 22
     SetGlobal    = 23
     GetGlobal    = 24
+    SetLocal     = 25
+    GetLocal     = 26

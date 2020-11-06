@@ -13,7 +13,8 @@ class Interpreter():
     index = 0
     had_error = False
 
-    variables = {}
+    global_variables = {}
+    local_variables  = []
 
 interpreter = Interpreter()
 last_constant = -1
@@ -85,9 +86,10 @@ def interpreter_init(chunk):
 
     interpreter.chunk = chunk
 
-    for i in range(64):
+    for i in range(1000):
         i = i
         interpreter.stack.append(0)
+        interpreter.local_variables.append(0)
 
 # Interpret bytecode
 def interpret():
@@ -354,18 +356,26 @@ def interpret():
         if (byte == OpCode.SetGlobal):
 
             name = str(read_constant())
-            interpreter.variables[name] = pop()
+            interpreter.global_variables[name] = pop()
 
         # Get Global
         if (byte == OpCode.GetGlobal):
 
             name = str(read_constant())
+            push(interpreter.global_variables[name])
 
-            if (name in interpreter.variables):
-                push(interpreter.variables[name])
-            else:
-                runtime_error("Undefined variable '{0}'.".format(name))
+        # Set Local
+        if (byte == OpCode.SetLocal):
 
+            slot = read_byte()
+            interpreter.local_variables[slot] = pop()
+
+        # Get Local
+        if (byte == OpCode.GetLocal):
+
+            slot = read_byte()
+            push(interpreter.local_variables[slot])
+            
         # Print
         if (byte == OpCode.Print): 
             
