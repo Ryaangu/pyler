@@ -1,5 +1,6 @@
 from opcodes  import OpCode
 from coloring import failure, success, warning
+from utils    import to_number
 
 # Interpreter
 class Interpreter():
@@ -20,36 +21,37 @@ last_constant = -1
 # Runtime Error
 def runtime_error(message):
 
+    # Set had error to true
     interpreter.had_error = True
 
+    # Get line and column
     line   = interpreter.chunk.lines[interpreter.index - 1]
     column = interpreter.chunk.columns[interpreter.index - 1]
 
-    error_message = "[{0}:{1}] ".format(line, column)
-    length = len(error_message)
-    error_message += "RuntimeError in main():"
-
-    spaces = ""
-    for i in range(length - 2):
-        i = i
-        spaces += " "
-
-    error_message += "\n>>{0}{1}".format(spaces, message)
+    # Show the error message
+    error_message = "[{0}:{1}] Runtime Error:".format(line, column)
+    error_message += "\n>>\t{0}".format(message)
     print(failure(error_message))
 
 # Push to the stack
 def push(value):
     
+    # Set that stack slot to the push value and increase stack count
     interpreter.stack[interpreter.stack_count] = value
     interpreter.stack_count += 1
 
 # Pop from the stack
 def pop():
 
+    # Get the pop value
+    value = interpreter.stack[interpreter.stack_count - 1]
+
+    # Decrease stack count and set that stack slot to 0
     interpreter.stack_count -= 1
-    v = interpreter.stack[interpreter.stack_count]
     interpreter.stack[interpreter.stack_count] = 0
-    return v
+
+    # Return the pop value
+    return value
 
 # Peek
 def peek(distance):
@@ -125,8 +127,18 @@ def interpret():
                 push(str(a + str(b)))
             elif (type(a) == float and type(b) == float):
                 push(float(a + b))
+            elif (type(a) == float and type(b) == str):
+                b = to_number(b)
+
+                # Can't convert value to a number
+                if (type(b) == str):
+                    runtime_error("Can't convert '{0}' to number.".format(b))
+                    return
+
+                push(float(a + b))
+
             else:
-                runtime_error("Operands must be two numbers or a string and other value.")
+                runtime_error("Operands must be two numbers, a number and a string or a string and other value.")
 
         # Subtract
         if (byte == OpCode.Subtract): 
@@ -134,14 +146,19 @@ def interpret():
             b = pop()
             a = pop()
 
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
+            if (type(a) == float and type(b) == float):
+                push(float(a - b))
+            elif (type(a) == float and type(b) == str):
+                b = to_number(b)
 
-            if (type(a) == float):
+                # Can't convert value to a number
+                if (type(b) == str):
+                    runtime_error("Can't convert '{0}' to number.".format(b))
+                    return
+
                 push(float(a - b))
             else:
-                runtime_error("Operands must be two numbers.")
+                runtime_error("Operands must be two numbers or a number and a string.")
 
         # Multiply
         if (byte == OpCode.Multiply):

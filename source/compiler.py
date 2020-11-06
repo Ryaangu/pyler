@@ -63,8 +63,8 @@ def advance():
 
         # Error?
         if (compiler.current.kind != TokenType.Error): break
-        # error_current("Error", compiler.current.content) # Currently disabled (broken)
-
+        error_current("Error", compiler.current.content) 
+        
 # Check current kind
 def check(kind):
 
