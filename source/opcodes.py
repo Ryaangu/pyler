@@ -26,3 +26,4 @@ OP_SET_GLOBAL      = 23
 OP_GET_GLOBAL      = 24
 OP_SET_LOCAL       = 25
 OP_GET_LOCAL       = 26
+OP_EXIT            = 27

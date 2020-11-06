@@ -418,5 +418,8 @@ def compile(source):
     while (not match(TOKEN_END) and not compiler.had_error):
         statement()
 
+    # Emit OP_EXIT
+    emit_byte(OP_EXIT)
+
     # Return the compiler chunk
     return compiler.chunk

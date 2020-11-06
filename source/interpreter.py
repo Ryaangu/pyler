@@ -10,14 +10,13 @@ class Interpreter():
 
     chunk = None
 
-    index = 0
+    index     = 0
     had_error = False
 
     global_variables = {}
     local_variables  = []
 
 interpreter = Interpreter()
-last_constant = -1
 
 # Runtime Error
 def runtime_error(message):
@@ -59,26 +58,21 @@ def peek(distance):
 
     return interpreter.stack[distance]
 
-# Is code end?
-def is_end():
-
-    return (interpreter.index >= interpreter.chunk.count)
-
 # Read byte
 def read_byte():
 
-    if (interpreter.index < interpreter.chunk.count):
-        interpreter.index += 1
-
+    interpreter.index += 1
     return interpreter.chunk.code[interpreter.index - 1]
 
 # Read Jump
 def read_jump():
+
     interpreter.index += 1
     return (interpreter.chunk.code[interpreter.index - 1])
 
 # Read Constant
 def read_constant():
+
     return interpreter.chunk.constants[read_byte()]
 
 # Initialize Interpreter
@@ -97,7 +91,7 @@ def interpret():
     print("\033[92mResult:\n")
 
     # Start interpreting
-    while (not is_end() and not interpreter.had_error):
+    while (not interpreter.had_error):
 
         byte = read_byte()
 
@@ -395,5 +389,9 @@ def interpret():
                     print(a[i])
             else:
                 print(str(a))
+
+        # Exit
+        if (byte == OP_EXIT):
+            break
 
     print("\033[0m")
