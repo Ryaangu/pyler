@@ -23,6 +23,15 @@
 8. }
 ```
 
+## ⌨ Statements Example
+```py
+1. # This is an If Statement!
+2. if (true == true)
+3.     print true;
+4. else
+5.     print false;
+```
+
 ## 📝 To do
 > 1. [x] Better variable declaration.
 > 2. [x] Global and Local variables. (they are global right now)
