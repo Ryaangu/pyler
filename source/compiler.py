@@ -15,6 +15,8 @@ class Compiler():
     had_error = False
     depth     = -1
 
+    variables = []
+
 compiler = Compiler()
 
 # Error at Token
@@ -64,7 +66,7 @@ def advance():
         # Error?
         if (compiler.current.kind != TokenType.Error): break
         error_current("Error", compiler.current.content) 
-        
+
 # Check current kind
 def check(kind):
 
@@ -181,8 +183,6 @@ def literal():
     elif (match(TokenType.String)):     emit_constant(get_string())
     elif (match(TokenType.LeftParen)):  grouping()
     elif (match(TokenType.Identifier)): identifier(True)
-    elif (match(TokenType.PlusPlus)):   increment(True)
-    elif (match(TokenType.MinusMinus)): decrement(True)
     else:
         print(compiler.previous.kind, compiler.current.kind)
         error_current("Syntax Error", "Unexpected token.")

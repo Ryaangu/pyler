@@ -10,3 +10,8 @@
 2. \0
 ```
 > ⚠ **NOTE**: `\0` tells the compiler to compile the code you wrote.
+
+# 📝 To do
+> 1. [ ] Better variable declaration.
+> 2. [ ] Global and Local variables. (they are global right now)
+> 3. [ ] Functions.
