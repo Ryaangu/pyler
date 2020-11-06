@@ -36,12 +36,7 @@ def error_at(kind, message, token):
     else:
         error_message += " at '{0}'".format(token.content)
 
-    spaces = ""
-    for i in range(length - 2):
-        i = i
-        spaces += " "
-
-    error_message += ":\n>>{0}{1}".format(spaces, message)
+    error_message += ":\n>>\t{0}".format(message)
     print(failure(error_message))
 
 # Error at previous token
