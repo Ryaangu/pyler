@@ -1,4 +1,4 @@
-from compiler    import compile
+from compiler    import compile, compiler
 from interpreter import interpreter_init, interpret
 from coloring    import success
 
@@ -22,5 +22,6 @@ print("\033[0m")
 chunk = compile(code)
 
 # Interpret chunk
-interpreter_init(chunk)
-interpret()
+if (not compiler.had_error): # Check for compile errors
+    interpreter_init(chunk)
+    interpret()

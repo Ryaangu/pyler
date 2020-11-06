@@ -319,7 +319,6 @@ def variable_assignment(is_expression = False):
 
     # Check if variable exists
     if (not (compiler.previous.content in compiler.global_variables or compiler.previous.content in compiler.local_variables)):
-        emit_byte(OpCode.Null)
         error("Compile Error", "The variable '{0}' is not declared!".format(compiler.previous.content))
         return
 
@@ -353,7 +352,6 @@ def variable_declaration(force_global = False):
 
     # Check if variable exists
     if (compiler.previous.content in compiler.global_variables or compiler.previous.content in compiler.local_variables):
-        emit_byte(OpCode.Null)
         error("Compile Error", "The variable '{0}' is already declared!".format(compiler.previous.content))
         return
 
