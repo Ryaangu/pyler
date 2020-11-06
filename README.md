@@ -35,4 +35,6 @@
 ## 📝 To do
 > 1. [x] Better variable declaration.
 > 2. [x] Global and Local variables. (they are global right now)
-> 3. [ ] Functions.
+> 3. [ ] For Statement.
+> 4. [ ] While Statement.
+> 5. [ ] Functions. 
