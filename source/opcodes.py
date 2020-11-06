@@ -1,32 +1,28 @@
-from enum import Enum
-
 # Operand Codes
-class OpCode(Enum):
-
-    Return       = 0
-    Constant     = 1
-    Print        = 2
-    False_       = 3
-    True_        = 4
-    Null         = 5
-    Add          = 6
-    Subtract     = 7
-    Multiply     = 8
-    Divide       = 9
-    Negate       = 10
-    Not          = 11
-    NotEqual     = 12
-    Greater      = 13
-    GreaterThan  = 14
-    Less         = 15
-    LessThan     = 16
-    Equals       = 17
-    And          = 18
-    Or           = 19
-    JumpIfFalse  = 20
-    Jump         = 21
-    Pop          = 22
-    SetGlobal    = 23
-    GetGlobal    = 24
-    SetLocal     = 25
-    GetLocal     = 26
+OP_RETURN          = 0
+OP_CONSTANT        = 1
+OP_PRINT           = 2
+OP_FALSE           = 3
+OP_TRUE            = 4
+OP_NULL            = 5
+OP_ADD             = 6
+OP_SUB             = 7
+OP_MUL             = 8
+OP_DIV             = 9
+OP_NEGATE          = 10
+OP_NOT             = 11
+OP_NOT_EQUAL       = 12
+OP_GREATER         = 13
+OP_GREATER_THAN    = 14
+OP_LESS            = 15
+OP_LESS_THAN       = 16
+OP_EQUALS          = 17
+OP_AND             = 18
+OP_OR              = 19
+OP_JUMP_IF_FALSE   = 20
+OP_JUMP            = 21
+OP_POP             = 22
+OP_SET_GLOBAL      = 23
+OP_GET_GLOBAL      = 24
+OP_SET_LOCAL       = 25
+OP_GET_LOCAL       = 26

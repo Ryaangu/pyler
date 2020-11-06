@@ -1,5 +1,5 @@
-from opcodes  import OpCode
-from tokens   import TokenType, Token
+from opcodes  import *
+from tokens   import *
 from scanner  import scanner_init, scan_token
 from chunk    import Chunk, chunk_write, add_constant
 from coloring import failure, success, warning
@@ -25,13 +25,11 @@ def error_at(kind, message, token):
     if (compiler.had_error): return
     compiler.had_error = True
 
-    error_message = "[{0}:{1}] ".format(token.line, token.column)
-    length = len(error_message)
-    error_message += kind
+    error_message = "[{0}:{1}] {2}".format(token.line, token.column, kind)
 
-    if (token.kind == TokenType.End):
+    if (token.kind == TOKEN_END):
         error_message += " at end"
-    elif (token.kind == TokenType.Error):
+    elif (token.kind == TOKEN_ERROR):
         error_message += ""
     else:
         error_message += " at '{0}'".format(token.content)
@@ -72,7 +70,7 @@ def advance():
         compiler.current = scan_token()
 
         # Error?
-        if (compiler.current.kind != TokenType.Error): break
+        if (compiler.current.kind != TOKEN_ERROR): break
         error_current("Error", compiler.current.content) 
 
 # Check current kind
@@ -119,29 +117,29 @@ def make_constant(value):
 
 # Emit Constant
 def emit_constant(value):
-    emit_bytes(OpCode.Constant, make_constant(value))
+    emit_bytes(OP_CONSTANT, make_constant(value))
 
 # Emit Operator
 def emit_operator(kind):
 
-    if (kind == TokenType.Plus):         emit_byte(OpCode.Add)
-    if (kind == TokenType.Minus):        emit_byte(OpCode.Subtract)
-    if (kind == TokenType.Star):         emit_byte(OpCode.Multiply)
-    if (kind == TokenType.Slash):        emit_byte(OpCode.Divide)
-    if (kind == TokenType.BangEqual):    emit_byte(OpCode.NotEqual)
-    if (kind == TokenType.Greater):      emit_byte(OpCode.Greater)
-    if (kind == TokenType.GreaterEqual): emit_byte(OpCode.GreaterThan)
-    if (kind == TokenType.Less):         emit_byte(OpCode.Less)
-    if (kind == TokenType.LessEqual):    emit_byte(OpCode.LessThan)
-    if (kind == TokenType.EqualEqual):   emit_byte(OpCode.Equals)
-    if (kind == TokenType.And):          emit_byte(OpCode.And)
-    if (kind == TokenType.Or):           emit_byte(OpCode.Or)
+    if (kind == TOKEN_PLUS):          emit_byte(OP_ADD)
+    if (kind == TOKEN_MINUS):         emit_byte(OP_SUB)
+    if (kind == TOKEN_STAR):          emit_byte(OP_MUL)
+    if (kind == TOKEN_SLASH):         emit_byte(OP_DIV)
+    if (kind == TOKEN_BANG_EQUAL):    emit_byte(OP_NOT_EQUAL)
+    if (kind == TOKEN_GREATER):       emit_byte(OP_GREATER)
+    if (kind == TOKEN_GREATER_EQUAL): emit_byte(OP_GREATER_THAN)
+    if (kind == TOKEN_LESS):          emit_byte(OP_LESS)
+    if (kind == TOKEN_LESS_EQUAL):    emit_byte(OP_LESS_THAN)
+    if (kind == TOKEN_EQUAL_EQUAL):   emit_byte(OP_EQUALS)
+    if (kind == TOKEN_AND):           emit_byte(OP_AND)
+    if (kind == TOKEN_OR):            emit_byte(OP_OR)
 
 # Emit Unary Operator
 def emit_unary_operator(kind):
 
-    if (kind == TokenType.Minus):  emit_byte(OpCode.Negate)
-    elif (kind == TokenType.Bang): emit_byte(OpCode.Not)
+    if (kind == TOKEN_MINUS):  emit_byte(OP_NEGATE)
+    elif (kind == TOKEN_BANG): emit_byte(OP_NOT)
 
 # Emit Jump
 def emit_jump(byte):
@@ -179,25 +177,25 @@ def get_previous():
 # Grouping Expression
 def grouping():
     expression()
-    consume(TokenType.RightParen, "Syntax Error", "Expect ')' after expression.")
+    consume(TOKEN_RIGHT_PAREN, "Syntax Error", "Expect ')' after expression.")
 
 # Literal
 def literal():
 
-    if (match(TokenType.False_)):       emit_byte(OpCode.False_)
-    elif (match(TokenType.True_)):      emit_byte(OpCode.True_)
-    elif (match(TokenType.Null)):       emit_byte(OpCode.Null)
-    elif (match(TokenType.Number)):     emit_constant(get_number())
-    elif (match(TokenType.String)):     emit_constant(get_string())
-    elif (match(TokenType.LeftParen)):  grouping()
-    elif (match(TokenType.Identifier)): variable_assignment(True)
+    if (match(TOKEN_FALSE)):        emit_byte(OP_FALSE)
+    elif (match(TOKEN_TRUE)):       emit_byte(OP_TRUE)
+    elif (match(TOKEN_NULL)):       emit_byte(OP_NULL)
+    elif (match(TOKEN_NUMBER)):     emit_constant(get_number())
+    elif (match(TOKEN_STRING)):     emit_constant(get_string())
+    elif (match(TOKEN_LEFT_PAREN)): grouping()
+    elif (match(TOKEN_IDENTIFIER)): variable_assignment(True)
     else:
         error_current("Syntax Error", "Unexpected token.")
 
 # Unary
 def unary():
 
-    while (compiler.current.kind in [TokenType.Bang, TokenType.Minus]):
+    while (compiler.current.kind in [TOKEN_BANG, TOKEN_MINUS]):
 
         advance()
 
@@ -212,7 +210,7 @@ def multiplication():
 
     unary()
 
-    while (compiler.current.kind in [TokenType.Slash, TokenType.Star]):
+    while (compiler.current.kind in [TOKEN_SLASH, TOKEN_STAR]):
         
         advance()
 
@@ -225,7 +223,7 @@ def addition():
 
     multiplication()
 
-    while (compiler.current.kind in [TokenType.Minus, TokenType.Plus]):
+    while (compiler.current.kind in [TOKEN_MINUS, TOKEN_PLUS]):
         
         advance()
 
@@ -238,7 +236,7 @@ def comparison():
 
     addition()
 
-    while (compiler.current.kind in [TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual, TokenType.Or, TokenType.And]):
+    while (compiler.current.kind in [TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL, TOKEN_OR, TOKEN_AND]):
         
         advance()
 
@@ -251,7 +249,7 @@ def equality():
 
     comparison()
 
-    while (compiler.current.kind in [TokenType.BangEqual, TokenType.EqualEqual]):
+    while (compiler.current.kind in [TOKEN_BANG_EQUAL, TOKEN_EQUAL_EQUAL]):
         
         advance()
 
@@ -269,10 +267,10 @@ def expression():
 def print_statement():
     
     expression()
-    emit_byte(OpCode.Print)
+    emit_byte(OP_PRINT)
 
     # Optional Semicolon
-    match(TokenType.Semicolon)
+    match(TOKEN_SEMICOLON)
 
 # Block
 def block():
@@ -280,10 +278,10 @@ def block():
     # Begin scope
     begin_scope()
 
-    while (not match(TokenType.RightBrace) and not match(TokenType.End)):
+    while (not match(TOKEN_RIGHT_BRACE) and not match(TOKEN_END)):
         statement()
 
-    if (compiler.previous.kind == TokenType.End):
+    if (compiler.previous.kind == TOKEN_END):
         error_current("Syntax Error", "Expect '}' after statement.")
 
     # End scope
@@ -292,19 +290,19 @@ def block():
 # If Statement
 def if_statement():
 
-    consume(TokenType.LeftParen, "Syntax Error", "Expect '(' after 'if'.")
+    consume(TOKEN_LEFT_PAREN, "Syntax Error", "Expect '(' after 'if'.")
     grouping()
 
-    then_jump = emit_jump(OpCode.JumpIfFalse)
-    emit_byte(OpCode.Pop)
+    then_jump = emit_jump(OP_JUMP_IF_FALSE)
+    emit_byte(OP_POP)
     statement()
 
-    else_jump = emit_jump(OpCode.Jump)
+    else_jump = emit_jump(OP_JUMP)
 
     patch_jump(then_jump)
-    emit_byte(OpCode.Pop)
+    emit_byte(OP_POP)
 
-    if (match(TokenType.Else)):
+    if (match(TOKEN_ELSE)):
         statement()
 
     patch_jump(else_jump)
@@ -321,15 +319,15 @@ def variable_assignment(is_expression = False):
     variable = make_constant(compiler.previous.content)
 
     # Get the opcodes
-    opcode_set = OpCode.SetGlobal
-    opcode_get = OpCode.GetGlobal
+    opcode_set = OP_SET_GLOBAL
+    opcode_get = OP_GET_GLOBAL
 
     if (compiler.scope_depth > 0): # Local
-        opcode_set = OpCode.SetLocal
-        opcode_get = OpCode.GetLocal
+        opcode_set = OP_SET_LOCAL
+        opcode_get = OP_GET_LOCAL
 
     # Declare the variable
-    if (match(TokenType.Equal)): 
+    if (match(TOKEN_EQUAL)): 
         expression()
         emit_bytes(opcode_set, variable)
 
@@ -338,7 +336,7 @@ def variable_assignment(is_expression = False):
             emit_bytes(opcode_get, variable)
         else:
             # Optional Semicolon
-            match(TokenType.Semicolon)
+            match(TOKEN_SEMICOLON)
     else:
         emit_bytes(opcode_get, variable)
 
@@ -352,18 +350,18 @@ def variable_declaration(force_global = False):
 
     # Expect identifier
     if (force_global):
-        consume(TokenType.Identifier, "Syntax Error", "Expect variable name after 'global'.")
+        consume(TOKEN_IDENTIFIER, "Syntax Error", "Expect variable name after 'global'.")
     else:
-        consume(TokenType.Identifier, "Syntax Error", "Expect variable name after 'var'.")
+        consume(TOKEN_IDENTIFIER, "Syntax Error", "Expect variable name after 'var'.")
 
     # Make the variable
     variable = make_constant(compiler.previous.content)
 
     # Get the opcode
-    opcode_set = OpCode.SetGlobal
+    opcode_set = OP_SET_GLOBAL
 
     if (compiler.scope_depth > 0 and not force_global): # Local
-        opcode_set = OpCode.SetLocal
+        opcode_set = OP_SET_LOCAL
 
     # Declare the variable
     if (compiler.scope_depth > 0 and not force_global):
@@ -371,18 +369,18 @@ def variable_declaration(force_global = False):
     else:
         compiler.global_variables.append(compiler.previous.content)
 
-    if (match(TokenType.Equal)): 
+    if (match(TOKEN_EQUAL)): 
         expression()
         emit_bytes(opcode_set, variable)
 
         # Optional Semicolon
-        match(TokenType.Semicolon)
+        match(TOKEN_SEMICOLON)
     else:
-        emit_byte(OpCode.Null)
+        emit_byte(OP_NULL)
         emit_bytes(opcode_set, variable)
 
         # Optional Semicolon
-        match(TokenType.Semicolon)
+        match(TOKEN_SEMICOLON)
 
 # Statement
 def statement():
@@ -393,20 +391,20 @@ def statement():
     # Check token kind
     token = compiler.previous.kind
 
-    if (token == TokenType.Print):
+    if (token == TOKEN_PRINT):
         print_statement()
-    elif (token == TokenType.If):
+    elif (token == TOKEN_IF):
         if_statement()
-    elif (token == TokenType.LeftBrace):
+    elif (token == TOKEN_LEFT_BRACE):
         block()
-    elif (token == TokenType.Identifier):
+    elif (token == TOKEN_IDENTIFIER):
         variable_assignment()
-    elif (token == TokenType.Var):
+    elif (token == TOKEN_VAR):
         variable_declaration()
-    elif (token == TokenType.Global):
+    elif (token == TOKEN_GLOBAL):
         variable_declaration(True)
     else:
-        error("Compile Error", "Expect statement.")
+        error_current("Compile Error", "Expect statement.")
 
 # Compile
 def compile(source):
@@ -417,7 +415,7 @@ def compile(source):
     # Start Compiling
     advance()
 
-    while (not match(TokenType.End) and not compiler.had_error):
+    while (not match(TOKEN_END) and not compiler.had_error):
         statement()
 
     # Return the compiler chunk

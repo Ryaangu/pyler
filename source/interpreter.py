@@ -1,4 +1,4 @@
-from opcodes  import OpCode
+from opcodes  import *
 from coloring import failure, success, warning
 from utils    import to_number
 
@@ -102,15 +102,15 @@ def interpret():
         byte = read_byte()
 
         # Constant
-        if (byte == OpCode.Constant): push(read_constant())
+        if (byte == OP_CONSTANT): push(read_constant())
 
         # Boolean
-        if (byte == OpCode.True_):  push(True)
-        if (byte == OpCode.False_): push(False)
-        if (byte == OpCode.Null):   push(None)
+        if (byte == OP_TRUE):  push(True)
+        if (byte == OP_FALSE): push(False)
+        if (byte == OP_NULL):  push(None)
 
         # Add
-        if (byte == OpCode.Add):
+        if (byte == OP_ADD):
 
             b = pop()
             a = pop()
@@ -143,7 +143,7 @@ def interpret():
                 runtime_error("Operands must be two numbers, a number and a string or a string and other value.")
 
         # Subtract
-        if (byte == OpCode.Subtract): 
+        if (byte == OP_SUB): 
 
             b = pop()
             a = pop()
@@ -163,7 +163,7 @@ def interpret():
                 runtime_error("Operands must be two numbers or a number and a string.")
 
         # Multiply
-        if (byte == OpCode.Multiply):
+        if (byte == OP_MUL):
 
             b = pop()
             a = pop()
@@ -178,7 +178,7 @@ def interpret():
                 runtime_error("Operands must be two numbers.")
 
         # Divide
-        if (byte == OpCode.Divide):
+        if (byte == OP_DIV):
 
             b = pop()
             a = pop()
@@ -193,7 +193,7 @@ def interpret():
                 runtime_error("Operands must be two numbers.")
 
         # Negate
-        if (byte == OpCode.Negate): 
+        if (byte == OP_NEGATE): 
             
             a = pop()
 
@@ -203,7 +203,7 @@ def interpret():
                 runtime_error("Operand must be a number.")
 
         # Not
-        if (byte == OpCode.Not): 
+        if (byte == OP_NOT): 
             
             a = pop()
 
@@ -213,7 +213,7 @@ def interpret():
                 runtime_error("Operand must be a number or a boolean.")
 
         # Not Equal
-        if (byte == OpCode.NotEqual):
+        if (byte == OP_NOT_EQUAL):
 
             b = pop()
             a = pop()
@@ -228,7 +228,7 @@ def interpret():
                 runtime_error("Operands must be two numbers or two strings or two booleans.")
 
         # Greater
-        if (byte == OpCode.Greater):
+        if (byte == OP_GREATER):
 
             b = pop()
             a = pop()
@@ -243,7 +243,7 @@ def interpret():
                 runtime_error("Operands must be two numbers.")
 
         # Greater Than
-        if (byte == OpCode.GreaterThan):
+        if (byte == OP_GREATER_THAN):
 
             b = pop()
             a = pop()
@@ -258,7 +258,7 @@ def interpret():
                 runtime_error("Operands must be two numbers.")
 
         # Less
-        if (byte == OpCode.Less):
+        if (byte == OP_LESS):
 
             b = pop()
             a = pop()
@@ -273,7 +273,7 @@ def interpret():
                 runtime_error("Operands must be two numbers.")
         
         # Less Than
-        if (byte == OpCode.LessThan):
+        if (byte == OP_LESS_THAN):
 
             b = pop()
             a = pop()
@@ -288,7 +288,7 @@ def interpret():
                 runtime_error("Operands must be two numbers.")
 
         # Equals
-        if (byte == OpCode.Equals):
+        if (byte == OP_EQUALS):
 
             b = pop()
             a = pop()
@@ -307,7 +307,7 @@ def interpret():
                 runtime_error("Operands must be two numbers or two strings or two booleans.")
         
         # And
-        if (byte == OpCode.And):
+        if (byte == OP_AND):
 
             b = pop()
             a = pop()
@@ -322,7 +322,7 @@ def interpret():
                 runtime_error("Operands must be two booleans.")
 
         # Or
-        if (byte == OpCode.Or):
+        if (byte == OP_OR):
 
             b = pop()
             a = pop()
@@ -337,47 +337,47 @@ def interpret():
                 runtime_error("Operands must be two booleans.")
 
         # Jump If False
-        if (byte == OpCode.JumpIfFalse):
+        if (byte == OP_JUMP_IF_FALSE):
 
             offset = read_jump()
             if (not bool(peek(0))): interpreter.index += offset
 
         # Jump
-        if (byte == OpCode.Jump):
+        if (byte == OP_JUMP):
 
             offset = read_jump()
             interpreter.index += offset
 
         # Pop
-        if (byte == OpCode.Pop):
+        if (byte == OP_POP):
             pop()
 
         # Set Global
-        if (byte == OpCode.SetGlobal):
+        if (byte == OP_SET_GLOBAL):
 
             name = str(read_constant())
             interpreter.global_variables[name] = pop()
 
         # Get Global
-        if (byte == OpCode.GetGlobal):
+        if (byte == OP_GET_GLOBAL):
 
             name = str(read_constant())
             push(interpreter.global_variables[name])
 
         # Set Local
-        if (byte == OpCode.SetLocal):
+        if (byte == OP_SET_LOCAL):
 
             slot = read_byte()
             interpreter.local_variables[slot] = pop()
 
         # Get Local
-        if (byte == OpCode.GetLocal):
+        if (byte == OP_GET_LOCAL):
 
             slot = read_byte()
             push(interpreter.local_variables[slot])
             
         # Print
-        if (byte == OpCode.Print): 
+        if (byte == OP_PRINT): 
             
             a = pop()
 

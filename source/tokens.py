@@ -1,62 +1,58 @@
-from enum import Enum
-
 # Token Types
-class TokenType(Enum):
+TOKEN_ERROR = 0 # Error
+TOKEN_END   = 1 # \0
 
-    Error = 0 # Error
-    End   = 1 # \0
+TOKEN_IDENTIFIER = 2 # Identifier
+TOKEN_NUMBER     = 3 # Number
+TOKEN_STRING     = 4 # String
 
-    Identifier = 2 # Identifier
-    Number     = 3 # Number
-    String     = 4 # String
+TOKEN_LEFT_PAREN    = 5  # ( 
+TOKEN_RIGHT_PAREN   = 6  # )
+TOKEN_LEFT_BRACE    = 7  # {
+TOKEN_RIGHT_BRACE   = 8  # }
+TOKEN_LEFT_BRACKET  = 9  # [
+TOKEN_RIGHT_BRACKET = 10 # ]
+TOKEN_COMMA        = 11 # ,
+TOKEN_DOT          = 12 # .
+TOKEN_MINUS        = 13 # -
+TOKEN_PLUS         = 14 # +
+TOKEN_SEMICOLON    = 15 # ;
+TOKEN_SLASH        = 16 # /
+TOKEN_STAR         = 17 # *
+TOKEN_QUESTION     = 18 # ?
+TOKEN_PERCENT      = 19 # %
+TOKEN_COLON        = 20 # :
 
-    LeftParen    = 5  # ( 
-    RightParen   = 6  # )
-    LeftBrace    = 7  # {
-    RightBrace   = 8  # }
-    LeftBracket  = 9  # [
-    RightBracket = 10 # ]
-    Comma        = 11 # ,
-    Dot          = 12 # .
-    Minus        = 13 # -
-    Plus         = 14 # +
-    Semicolon    = 15 # ;
-    Slash        = 16 # /
-    Star         = 17 # *
-    Question     = 18 # ?
-    Percent      = 19 # %
-    Colon        = 20 # :
+TOKEN_BANG          = 21 # !
+TOKEN_BANG_EQUAL    = 22 # !=
+TOKEN_EQUAL         = 23 # =
+TOKEN_EQUAL_EQUAL   = 24 # ==
+TOKEN_GREATER       = 25 # >
+TOKEN_GREATER_EQUAL = 26 # >=
+TOKEN_LESS          = 27 # <
+TOKEN_LESS_EQUAL    = 28 # <=
+TOKEN_PLUS_PLUS     = 29 # ++
+TOKEN_MINUS_MINUS   = 30 # --
+TOKEN_PLUS_EQUAL    = 31 # +=
+TOKEN_MINUS_EQUAL   = 32 # -=
+TOKEN_SLASH_EQUAL   = 33 # /=
+TOKEN_STAR_EQUAL    = 34 # *=
+TOKEN_PERCENT_EQUAL = 35 # %=
 
-    Bang         = 21 # !
-    BangEqual    = 22 # !=
-    Equal        = 23 # =
-    EqualEqual   = 24 # ==
-    Greater      = 25 # >
-    GreaterEqual = 26 # >=
-    Less         = 27 # <
-    LessEqual    = 28 # <=
-    PlusPlus     = 29 # ++
-    MinusMinus   = 30 # --
-    PlusEqual    = 31 # +=
-    MinusEqual   = 32 # -=
-    SlashEqual   = 33 # /=
-    StarEqual    = 34 # *=
-    PercentEqual = 35 # %=
-
-    And      = 36 # and &&
-    Else     = 37 # else
-    False_   = 38 # false
-    For      = 39 # for
-    Function = 40 # function
-    If       = 41 # if
-    Null     = 42 # null
-    Or       = 43 # or ||
-    Print    = 44 # print
-    Return   = 45 # return
-    True_    = 46 # true
-    While    = 47 # while
-    Global   = 48 # global
-    Var      = 49 # var
+TOKEN_AND      = 36 # &&
+TOKEN_ELSE     = 37 # else
+TOKEN_FALSE    = 38 # false
+TOKEN_FOR      = 39 # for
+TOKEN_FUNCTION = 40 # function
+TOKEN_IF       = 41 # if
+TOKEN_NULL     = 42 # null
+TOKEN_OR       = 43 # ||
+TOKEN_PRINT    = 44 # print
+TOKEN_RETURN   = 45 # return
+TOKEN_TRUE     = 46 # true
+TOKEN_WHILE    = 47 # while
+TOKEN_GLOBAL   = 48 # global
+TOKEN_VAR      = 49 # var
 
 # Token
 class Token():

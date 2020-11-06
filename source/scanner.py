@@ -1,4 +1,4 @@
-from tokens import TokenType, Token
+from tokens import *
 from utils  import is_digit, is_alpha
 
 # Scanner
@@ -17,20 +17,20 @@ scanner = Scanner()
 
 # Keywords
 keywords = {
-    "and":      TokenType.And,
-    "else":     TokenType.Else,
-    "false":    TokenType.False_,
-    "for":      TokenType.For,
-    "function": TokenType.Function,
-    "if":       TokenType.If,
-    "null":     TokenType.Null,
-    "or":       TokenType.Or,
-    "print":    TokenType.Print,
-    "return":   TokenType.Return,
-    "true":     TokenType.True_,
-    "while":    TokenType.While,
-    "global":   TokenType.Global,
-    "var":      TokenType.Var
+    "and":      TOKEN_AND,
+    "else":     TOKEN_ELSE,
+    "false":    TOKEN_FALSE,
+    "for":      TOKEN_FOR,
+    "function": TOKEN_FUNCTION,
+    "if":       TOKEN_IF,
+    "null":     TOKEN_NULL,
+    "or":       TOKEN_OR,
+    "print":    TOKEN_PRINT,
+    "return":   TOKEN_RETURN,
+    "true":     TOKEN_TRUE,
+    "while":    TOKEN_WHILE,
+    "global":   TOKEN_GLOBAL,
+    "var":      TOKEN_VAR
 }
 
 # Initialize Scanner
@@ -48,7 +48,7 @@ def make_token(kind):
 # Make Error Token
 def make_error_token(message):
 
-    return Token(TokenType.Error, message, 
+    return Token(TOKEN_ERROR, message, 
             len(message), scanner.line, scanner.column)
 
 # Is scanner end?
@@ -127,7 +127,7 @@ def identifier_type():
         return keywords[keyword]
     
     # No keyword found, return identifier type
-    return TokenType.Identifier
+    return TOKEN_IDENTIFIER
 
 # Make Identifier Token
 def make_identifier():
@@ -157,7 +157,7 @@ def make_number():
             advance()
 
     # Make the token and return it
-    return make_token(TokenType.Number)
+    return make_token(TOKEN_NUMBER)
 
 # Make String Token
 def make_string():
@@ -176,7 +176,7 @@ def make_string():
     advance()
 
     # Make the token and return it
-    return make_token(TokenType.String)
+    return make_token(TOKEN_STRING)
 
 # Scan Token
 def scan_token():
@@ -188,7 +188,7 @@ def scan_token():
     # Is End?
     if (is_end()):
         scanner.start = scanner.current + 1
-        return make_token(TokenType.End)
+        return make_token(TOKEN_END)
 
     # Advance
     c = advance()
@@ -197,52 +197,52 @@ def scan_token():
     if (is_alpha(c)): return make_identifier() # Identifier
     if (is_digit(c)): return make_number()     # Number
 
-    if (c == '('):   return make_token(TokenType.LeftParen)        # (
-    elif (c == ')'): return make_token(TokenType.RightParen)       # )
-    elif (c == '{'): return make_token(TokenType.LeftBrace)        # {
-    elif (c == '}'): return make_token(TokenType.RightBrace)       # }
-    elif (c == '['): return make_token(TokenType.LeftBracket)      # [
-    elif (c == ']'): return make_token(TokenType.RightBracket)     # ]
-    elif (c == ';'): return make_token(TokenType.Semicolon)        # ;
-    elif (c == ','): return make_token(TokenType.Comma)            # ,
-    elif (c == '.'): return make_token(TokenType.Dot)              # .
-    elif (c == '?'): return make_token(TokenType.Question)         # ?
-    elif (c == ':'): return make_token(TokenType.Colon)            # :
+    if (c == '('):   return make_token(TOKEN_LEFT_PAREN)       # (
+    elif (c == ')'): return make_token(TOKEN_RIGHT_PAREN)      # )
+    elif (c == '{'): return make_token(TOKEN_LEFT_BRACE)       # {
+    elif (c == '}'): return make_token(TOKEN_RIGHT_BRACE)      # }
+    elif (c == '['): return make_token(TOKEN_LEFT_BRACKET)     # [
+    elif (c == ']'): return make_token(TOKEN_RIGHT_BRACKET)    # ]
+    elif (c == ';'): return make_token(TOKEN_SEMICOLON)        # ;
+    elif (c == ','): return make_token(TOKEN_COMMA)            # ,
+    elif (c == '.'): return make_token(TOKEN_DOT)              # .
+    elif (c == '?'): return make_token(TOKEN_QUESTION)         # ?
+    elif (c == ':'): return make_token(TOKEN_COLON)            # :
     elif (c == '-'): 
-        if (match('-')): return make_token(TokenType.MinusMinus)   # --
-        if (match('=')): return make_token(TokenType.MinusEqual)   # -=
-        return make_token(TokenType.Minus)                         # -
+        if (match('-')): return make_token(TOKEN_MINUS_MINUS)  # --
+        if (match('=')): return make_token(TOKEN_MINUS_EQUAL)  # -=
+        return make_token(TOKEN_MINUS)                         # -
     elif (c == '+'): 
-        if (match('+')): return make_token(TokenType.PlusPlus)     # ++
-        if (match('=')): return make_token(TokenType.PlusEqual)    # +=
-        return make_token(TokenType.Plus)                          # +
+        if (match('+')): return make_token(TOKEN_PLUS_PLUS)    # ++
+        if (match('=')): return make_token(TOKEN_PLUS_EQUAL)   # +=
+        return make_token(TOKEN_PLUS)                          # +
     elif (c == '/'): 
-        if (match('=')): return make_token(TokenType.SlashEqual)   # /=
-        return make_token(TokenType.Slash)                         # /
+        if (match('=')): return make_token(TOKEN_SLASH_EQUAL)  # /=
+        return make_token(TOKEN_SLASH)                         # /
     elif (c == '*'):
-        if (match('=')): return make_token(TokenType.StarEqual)    # *=
-        return make_token(TokenType.Star)                          # *
+        if (match('=')): return make_token(TOKEN_STAR_EQUAL)   # *=
+        return make_token(TOKEN_STAR)                          # *
     elif (c == '%'):
-        if (match('=')): return make_token(TokenType.PercentEqual) # %=
-        return make_token(TokenType.Percent)                       # %
+        if (match('=')): return make_token(TOKEN_PERCENT_EQUAL) # %=
+        return make_token(TOKEN_PERCENT)                        # %
     elif (c == '!'): 
-        if (match('=')): return make_token(TokenType.BangEqual)    # !=
-        return make_token(TokenType.Bang)                          # !
+        if (match('=')): return make_token(TOKEN_BANG_EQUAL)   # !=
+        return make_token(TOKEN_BANG)                          # !
     elif (c == '='): 
-        if (match('=')): return make_token(TokenType.EqualEqual)   # ==
-        return make_token(TokenType.Equal)                         # =
+        if (match('=')): return make_token(TOKEN_EQUAL_EQUAL)  # ==
+        return make_token(TOKEN_EQUAL)                         # =
     elif (c == '<'): 
-        if (match('=')): return make_token(TokenType.LessEqual)    # <=
-        return make_token(TokenType.Less)                          # <
+        if (match('=')): return make_token(TOKEN_LESS_EQUAL)   # <=
+        return make_token(TOKEN_LESS)                          # <
     elif (c == '>'): 
-        if (match('=')): return make_token(TokenType.GreaterEqual) # >=
-        return make_token(TokenType.Greater)                       # >
+        if (match('=')): return make_token(TOKEN_GREATER_EQUAL) # >=
+        return make_token(TOKEN_GREATER)                        # >
     elif (c == '&'):                                               
-        if (match('&')): return make_token(TokenType.And)          # &&
+        if (match('&')): return make_token(TOKEN_AND)          # &&
     elif (c == '|'):                                               
-        if (match('|')): return make_token(TokenType.Or)           # ||
+        if (match('|')): return make_token(TOKEN_OR)           # ||
     elif (c == '"'):
-        return make_string()                                       # String
+        return make_string()  # String
 
     # Unexpected character
     return make_error_token("Unexpected character '{0}'.".format(c))
