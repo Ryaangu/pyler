@@ -159,6 +159,13 @@ def patch_jump(offset):
     # Set the amount to jump
     compiler.chunk.code[offset] = jump
 
+# Emit loop
+def emit_loop(start):
+    
+    emit_byte(OP_LOOP)
+    offset = compiler.chunk.count - start + 1
+    emit_byte(offset)
+
 # Get token number
 def get_number():
 
@@ -381,6 +388,14 @@ def variable_declaration(force_global = False):
 
         # Optional Semicolon
         match(TOKEN_SEMICOLON)
+
+# Expression Statement
+def expression_statement():
+
+    expression()
+
+    # Optional Semicolon
+    match(TOKEN_SEMICOLON)
 
 # Statement
 def statement():

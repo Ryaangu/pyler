@@ -80,10 +80,10 @@ def interpreter_init(chunk):
 
     interpreter.chunk = chunk
 
-    for i in range(1000):
+    for i in range(255):
         i = i
         interpreter.stack.append(0)
-        interpreter.local_variables.append(0)
+        interpreter.local_variables.append(0.0)
 
 # Interpret bytecode
 def interpret():
@@ -112,7 +112,7 @@ def interpret():
             # Shitty way to remove '.0' from string
             if (type(a) == str and type(b) == float):
                 b = str(b)
-                if (b[-2] == '.' and int(b[-1]) == 0):
+                if (b[-2] == '.' and float(b[-1]) == 0):
                     b = b[0 : -2]
 
             # Shitty way to add null instead of None
@@ -257,7 +257,8 @@ def interpret():
             b = pop()
             a = pop()
 
-            if (not (type(a) == type(b))): 
+            if (not (type(a) == type(b))):
+                print(type(a), type(b), a, b)
                 runtime_error("Operands must be the same type.")
                 return
 
@@ -363,11 +364,13 @@ def interpret():
 
             slot = read_byte()
             interpreter.local_variables[slot] = pop()
+            print(interpreter.local_variables[slot])
 
         # Get Local
         if (byte == OP_GET_LOCAL):
 
             slot = read_byte()
+            print("get", interpreter.local_variables[slot])
             push(interpreter.local_variables[slot])
             
         # Print
@@ -389,6 +392,12 @@ def interpret():
                     print(a[i])
             else:
                 print(str(a))
+
+        # Loop
+        if (byte == OP_LOOP):
+            
+            offset = read_jump()
+            interpreter.index -= offset
 
         # Exit
         if (byte == OP_EXIT):

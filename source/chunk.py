@@ -4,10 +4,11 @@ class Chunk():
     count           = 0
     constants_count = 0
 
-    code      = []
-    lines     = []
-    columns   = []
-    constants = []
+    code            = []
+    lines           = []
+    columns         = []
+    constants       = []
+    local_variables = []
 
 # Write to chunk
 def chunk_write(chunk, byte, line, column):

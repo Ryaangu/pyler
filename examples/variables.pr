@@ -1,0 +1,8 @@
+# This is a variable that is forced to be global
+global a = "Hello! I'm a global variable :D"
+# This is a global variable because it's not inside a block
+var b = "I'm global? >:o"
+# This is a local variable because it's inside a block
+{
+    var c = "I'm local... :("
+}
