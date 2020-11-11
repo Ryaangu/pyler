@@ -1,1 +1,0 @@
-python C:\Users\user\Desktop\pyler\source\main.py

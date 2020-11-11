@@ -3,6 +3,7 @@ from tokens   import *
 from scanner  import scanner_init, scan_token
 from chunk    import Chunk, chunk_write, add_constant
 from coloring import failure, success, warning
+from interpreter import interpreter_init, interpret
 
 # Compiler
 class Compiler():
@@ -436,5 +437,7 @@ def compile(source):
     # Emit OP_EXIT
     emit_byte(OP_EXIT)
 
-    # Return the compiler chunk
-    return compiler.chunk
+    # Interpret chunk
+    if (not compiler.had_error):
+        interpreter_init(compiler.chunk)
+        interpret()

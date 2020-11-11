@@ -1,27 +1,41 @@
-from compiler    import compile, compiler
-from interpreter import interpreter_init, interpret
-from coloring    import success
+from compiler import compile
+from coloring import success
+from pathlib  import Path
 
-# Get code input
-code = ""
-done = False
-line = 1
+import sys
 
-while (not done):
+# Get command line arguments
+if (len(sys.argv) == 1): # REPL
+    
+    # Get code input
+    code = ""
+    done = False
+    line = 1
 
-    x = input("\033[94m{0}. ".format(line))
-    if (x == "\\0"):
-        done = True
-    else:
-        code += x + "\n"
-        line += 1
+    while (not done):
 
-print("\033[0m")
+        x = input("{0}. ".format(line))
+        if (x == "\\0"):
+            done = True
+        else:
+            code += x + "\n"
+            line += 1
 
-# Compile code
-chunk = compile(code)
+    # Compile
+    compile(code)
+elif (len(sys.argv) == 2): # Run file
 
-# Interpret chunk
-if (not compiler.had_error): # Check for compile errors
-    interpreter_init(chunk)
-    interpret()
+    # Get file name
+    file_name = sys.argv[1]
+
+    # Read file
+    try:
+        f    = open(file_name, "r")
+        code = f.read()
+
+        # Compile
+        compile(code)
+    except FileNotFoundError:
+        print("Failed to read file: '{0}'.".format(file_name))
+else:
+    print("Usage:\n\n\t- python main.py\n\t- python main.py file.pr")
