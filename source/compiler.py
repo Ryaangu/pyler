@@ -5,27 +5,47 @@ from chunk    import Chunk, chunk_write, add_constant
 from coloring import failure, success, warning
 from interpreter import interpreter_init, interpret
 
-# Compiler
-class Compiler():
-    
-    chunk = Chunk()
+# Parser
+class Parser():
 
     previous = None
     current  = None
 
-    had_error   = False
+    had_error = False
+
+parser = Parser()
+
+# Compiler
+class Compiler():
+    
+    chunk = Chunk()
     scope_depth = 0
 
     global_variables = []
     local_variables  = []
 
-compiler = Compiler()
+global current
+current = None
+
+# Initialize compiler
+def compiler_init(compiler):
+
+    # Set current compiler
+    global current
+    current = compiler
+
+# Get current chunk
+def current_chunk():
+    return current.chunk
 
 # Error at Token
 def error_at(kind, message, token):
-    if (compiler.had_error): return
-    compiler.had_error = True
 
+    # Already have an error? 
+    if (parser.had_error): return
+    parser.had_error = True
+
+    # Make the error message and print it to the screen
     error_message = "[{0}:{1}] {2}".format(token.line, token.column, kind)
 
     if (token.kind == TOKEN_END):
@@ -40,44 +60,44 @@ def error_at(kind, message, token):
 
 # Error at previous token
 def error(kind, message):
-    error_at(kind, message, compiler.previous)
+    error_at(kind, message, parser.previous)
 
 # Error at current token
 def error_current(kind, message):
-    error_at(kind, message, compiler.current)
+    error_at(kind, message, parser.current)
 
 # Begin scope
 def begin_scope():
-    compiler.scope_depth += 1
+    current.scope_depth += 1
 
 # End scope
 def end_scope():
-    compiler.scope_depth -= 1
+    current.scope_depth -= 1
 
     # Clear local variables array
-    if (compiler.scope_depth == 0):
-        compiler.local_variables = []
+    if (current.scope_depth == 0):
+        current.local_variables = []
 
 # Advance Token
 def advance():
     
     # Get the previous token
-    compiler.previous = compiler.current
+    parser.previous = parser.current
 
     # Error?
     while (True):
         
         # Get the current token
-        compiler.current = scan_token()
+        parser.current = scan_token()
 
         # Error?
-        if (compiler.current.kind != TOKEN_ERROR): break
-        error_current("Error", compiler.current.content) 
+        if (parser.current.kind != TOKEN_ERROR): break
+        error_current("Error", parser.current.content) 
 
 # Check current kind
 def check(kind):
 
-    return (compiler.current.kind == kind)
+    return (parser.current.kind == kind)
 
 # Consume Token
 def consume(kind, error, message):
@@ -100,7 +120,7 @@ def match(kind):
 
 # Emit Byte
 def emit_byte(byte):
-    chunk_write(compiler.chunk, byte, compiler.previous.line, compiler.previous.column)
+    chunk_write(current_chunk(), byte, parser.previous.line, parser.previous.column)
 
 # Emit Bytes
 def emit_bytes(byte1, byte2):
@@ -111,7 +131,7 @@ def emit_bytes(byte1, byte2):
 def make_constant(value):
 
     # Add constant to chunk
-    constant = add_constant(compiler.chunk, value)
+    constant = add_constant(current_chunk(), value)
     return constant
 
 # Emit Constant
@@ -147,16 +167,16 @@ def emit_jump(byte):
     emit_byte(-1)   # Amount to jump
 
     # Return the offset of amount to jump
-    return compiler.chunk.count - 1
+    return current_chunk().count - 1
 
 # Patch Jump
 def patch_jump(offset):
 
     # Calculate the amount to jump
-    jump = compiler.chunk.count - offset - 1
+    jump = current_chunk().count - offset - 1
 
     # Set the amount to jump
-    compiler.chunk.code[offset] = jump
+    current_chunk().code[offset] = jump
 
 # Emit loop
 def emit_loop(start):
@@ -164,24 +184,24 @@ def emit_loop(start):
     emit_byte(OP_LOOP)
 
     # Get the loop offset
-    offset = compiler.chunk.count - start + 1
+    offset = current_chunk().count - start + 1
 
     emit_byte(offset)
 
 # Get token number
 def get_number():
 
-    return float(compiler.previous.content)
+    return float(parser.previous.content)
 
 # Get token string
 def get_string():
 
-    return str(compiler.previous.content[1 : compiler.previous.length - 1])
+    return str(parser.previous.content[1 : parser.previous.length - 1])
 
 # Get previous token
 def get_previous():
 
-    return compiler.previous
+    return parser.previous
 
 # Grouping Expression
 def grouping():
@@ -205,11 +225,11 @@ def literal():
 def unary():
 
     # !, -
-    while (compiler.current.kind in [TOKEN_BANG, TOKEN_MINUS]):
+    while (parser.current.kind in [TOKEN_BANG, TOKEN_MINUS]):
 
         advance()
 
-        operator = compiler.previous.kind
+        operator = parser.previous.kind
         unary()
         emit_unary_operator(operator)
 
@@ -221,11 +241,11 @@ def multiplication():
     unary()
 
     # /, *
-    while (compiler.current.kind in [TOKEN_SLASH, TOKEN_STAR]):
+    while (parser.current.kind in [TOKEN_SLASH, TOKEN_STAR]):
         
         advance()
 
-        operator = compiler.previous.kind
+        operator = parser.previous.kind
         unary()
         emit_operator(operator)
 
@@ -235,11 +255,11 @@ def addition():
     multiplication()
 
     # -, +
-    while (compiler.current.kind in [TOKEN_MINUS, TOKEN_PLUS]):
+    while (parser.current.kind in [TOKEN_MINUS, TOKEN_PLUS]):
         
         advance()
 
-        operator = compiler.previous.kind
+        operator = parser.previous.kind
         multiplication()
         emit_operator(operator)
 
@@ -249,11 +269,11 @@ def comparison():
     addition()
 
     # >, >=, <, <=, &&, ||
-    while (compiler.current.kind in [TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL, TOKEN_OR, TOKEN_AND]):
+    while (parser.current.kind in [TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL, TOKEN_OR, TOKEN_AND]):
         
         advance()
 
-        operator = compiler.previous.kind
+        operator = parser.previous.kind
         addition()
         emit_operator(operator)
 
@@ -263,11 +283,11 @@ def equality():
     comparison()
 
     # !=, ==
-    while (compiler.current.kind in [TOKEN_BANG_EQUAL, TOKEN_EQUAL_EQUAL]):
+    while (parser.current.kind in [TOKEN_BANG_EQUAL, TOKEN_EQUAL_EQUAL]):
         
         advance()
 
-        operator = compiler.previous.kind
+        operator = parser.previous.kind
         comparison()
         emit_operator(operator)
 
@@ -297,7 +317,7 @@ def block():
         statement()
 
     # No '}' found?
-    if (compiler.previous.kind == TOKEN_END):
+    if (parser.previous.kind == TOKEN_END):
         error_current("Syntax Error", "Expect '}' after statement.")
 
     # End scope
@@ -337,18 +357,18 @@ def if_statement():
 def variable_assignment(is_expression = False):
 
     # Check if variable exists
-    if (not (compiler.previous.content in compiler.global_variables or compiler.previous.content in compiler.local_variables)):
-        error("Compile Error", "The variable '{0}' is not declared!".format(compiler.previous.content))
+    if (not (parser.previous.content in current.global_variables or parser.previous.content in current.local_variables)):
+        error("Compile Error", "The variable '{0}' is not declared!".format(parser.previous.content))
         return
 
     # Make the variable
-    variable = make_constant(compiler.previous.content)
+    variable = make_constant(parser.previous.content)
 
     # Get the opcodes
     opcode_set = OP_SET_GLOBAL
     opcode_get = OP_GET_GLOBAL
 
-    if (compiler.scope_depth > 0): # Local
+    if (current.scope_depth > 0): # Local
         opcode_set = OP_SET_LOCAL
         opcode_get = OP_GET_LOCAL
 
@@ -370,8 +390,8 @@ def variable_assignment(is_expression = False):
 def variable_declaration(force_global = False):
 
     # Check if variable exists
-    if (compiler.previous.content in compiler.global_variables or compiler.previous.content in compiler.local_variables):
-        error("Compile Error", "The variable '{0}' is already declared!".format(compiler.previous.content))
+    if (parser.previous.content in current.global_variables or parser.previous.content in current.local_variables):
+        error("Compile Error", "The variable '{0}' is already declared!".format(parser.previous.content))
         return
 
     # Expect identifier
@@ -381,19 +401,19 @@ def variable_declaration(force_global = False):
         consume(TOKEN_IDENTIFIER, "Syntax Error", "Expect variable name after 'var'.")
 
     # Make the variable
-    variable = make_constant(compiler.previous.content)
+    variable = make_constant(parser.previous.content)
 
     # Get the opcode
     opcode_set = OP_SET_GLOBAL
 
-    if (compiler.scope_depth > 0 and not force_global): # Local
+    if (current.scope_depth > 0 and not force_global): # Local
         opcode_set = OP_SET_LOCAL
 
     # Declare the variable
-    if (compiler.scope_depth > 0 and not force_global):
-        compiler.local_variables.append(compiler.previous.content)
+    if (current.scope_depth > 0 and not force_global):
+        current.local_variables.append(parser.previous.content)
     else:
-        compiler.global_variables.append(compiler.previous.content)
+        current.global_variables.append(parser.previous.content)
 
     # Assignment?
     if (match(TOKEN_EQUAL)): 
@@ -424,7 +444,7 @@ def statement():
     advance()
 
     # Check token kind
-    token = compiler.previous.kind
+    token = parser.previous.kind
 
     if (token == TOKEN_PRINT):        # Print Statement
         print_statement()
@@ -447,17 +467,21 @@ def compile(source):
     # Initialize scanner
     scanner_init(source)
 
+    # Initialize compiler
+    compiler = Compiler()
+    compiler_init(compiler)
+
     # Start Compiling
     advance()
 
     # Loop until source end
-    while (not match(TOKEN_END) and not compiler.had_error):
+    while (not match(TOKEN_END) and not parser.had_error):
         statement()
 
     # Emit OP_EXIT
     emit_byte(OP_EXIT)
 
     # Interpret chunk
-    if (not compiler.had_error):
-        interpreter_init(compiler.chunk)
+    if (not parser.had_error):
+        interpreter_init(current_chunk())
         interpret()
