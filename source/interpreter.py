@@ -56,24 +56,65 @@ def pop():
 # Peek
 def peek(distance):
 
-    return interpreter.stack[distance]
+    # Get the value at distance
+    return interpreter.stack[(interpreter.stack_count - 1) - distance]
 
 # Read byte
 def read_byte():
 
+    # Increase index and return the old index value
     interpreter.index += 1
     return interpreter.chunk.code[interpreter.index - 1]
 
 # Read Jump
 def read_jump():
 
+    # Increase index and return the old index value
     interpreter.index += 1
     return (interpreter.chunk.code[interpreter.index - 1])
 
 # Read Constant
 def read_constant():
 
+    # Read constant and return it
     return interpreter.chunk.constants[read_byte()]
+
+# Binary Op
+def binary_op(operator):
+
+    # Type checking
+    if (type(peek(0)) != float or type(peek(1)) != float):
+        runtime_error("Operands must be two numbers.")
+        return
+
+    # Pop values to be calculated
+    b = float(pop())
+    a = float(pop())
+
+    # Calculate
+    if (operator == OP_ADD): push(float(a + b)) # Addition
+    if (operator == OP_SUB): push(float(a - b)) # Subtraction
+    if (operator == OP_MUL): push(float(a * b)) # Multiplication
+    if (operator == OP_DIV): push(float(a / b)) # Division
+
+    if (operator == OP_LESS):         push(bool(a <  b)) # Less
+    if (operator == OP_LESS_THAN):    push(bool(a <= b)) # Less than
+    if (operator == OP_GREATER):      push(bool(a >  b)) # Greater
+    if (operator == OP_GREATER_THAN): push(bool(a >= b)) # Greater than
+
+# Unary Op
+def unary_op(operator):
+
+    # Type checking
+    if (type(peek(0)) != float):
+        runtime_error("Operand must be a number.")
+        return
+
+    # Pop value to be calculated
+    a = float(pop())
+
+    # Calculate
+    if (operator == OP_NEGATE): push(float(-a)) # Negative
 
 # Initialize Interpreter
 def interpreter_init(chunk):
@@ -88,319 +129,233 @@ def interpreter_init(chunk):
 # Interpret bytecode
 def interpret():
 
-    print("\033[92mResult:\n")
-
     # Start interpreting
     while (not interpreter.had_error):
 
+        # Get OpCode
         byte = read_byte()
 
         # Constant
         if (byte == OP_CONSTANT): push(read_constant())
 
-        # Boolean
-        if (byte == OP_TRUE):  push(True)
-        if (byte == OP_FALSE): push(False)
-        if (byte == OP_NULL):  push(None)
+        # Boolean Constants
+        if (byte == OP_TRUE):  push(True)  # true
+        if (byte == OP_FALSE): push(False) # false
+        if (byte == OP_NULL):  push(None)  # null
 
         # Add
         if (byte == OP_ADD):
 
+            # Type checking
+            if (not(type(peek(0)) == type(peek(1)))):
+                runtime_error("Operands must be the same type.")
+                return
+
+            # Pop values to be calculated
             b = pop()
             a = pop()
 
-            # Shitty way to remove '.0' from string
-            if (type(a) == str and type(b) == float):
-                b = str(b)
-                if (b[-2] == '.' and float(b[-1]) == 0):
-                    b = b[0 : -2]
-
-            # Shitty way to add null instead of None
-            if (b == None):
-                b = "null"
-
-            if (type(a) == str):
-                push(str(a + str(b)))
-            elif (type(a) == float and type(b) == float):
-                push(float(a + b))
-            elif (type(a) == float and type(b) == str):
-                b = to_number(b)
-
-                # Can't convert value to a number
-                if (type(b) == str):
-                    runtime_error("Can't convert '{0}' to number.".format(b))
-                    return
-
-                push(float(a + b))
-
-            else:
-                runtime_error("Operands must be two numbers, a number and a string or a string and other value.")
+            # Calculate
+            if (type(a) == str):   push(str(a + b))   # String
+            if (type(a) == float): push(float(a + b)) # Number
 
         # Subtract
-        if (byte == OP_SUB): 
-
-            b = pop()
-            a = pop()
-
-            if (type(a) == float and type(b) == float):
-                push(float(a - b))
-            elif (type(a) == float and type(b) == str):
-                b = to_number(b)
-
-                # Can't convert value to a number
-                if (type(b) == str):
-                    runtime_error("Can't convert '{0}' to number.".format(b))
-                    return
-
-                push(float(a - b))
-            else:
-                runtime_error("Operands must be two numbers or a number and a string.")
+        if (byte == OP_SUB): binary_op(OP_SUB)
 
         # Multiply
-        if (byte == OP_MUL):
-
-            b = pop()
-            a = pop()
-
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == float):
-                push(float(a * b))
-            else:
-                runtime_error("Operands must be two numbers.")
+        if (byte == OP_MUL): binary_op(OP_MUL)
 
         # Divide
-        if (byte == OP_DIV):
-
-            b = pop()
-            a = pop()
-
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == float):
-                push(float(a / b))
-            else:
-                runtime_error("Operands must be two numbers.")
+        if (byte == OP_DIV): binary_op(OP_DIV)
 
         # Negate
-        if (byte == OP_NEGATE): 
-            
-            a = pop()
-
-            if (type(a) == float):
-                push(float(-a))
-            else:
-                runtime_error("Operand must be a number.")
+        if (byte == OP_NEGATE): unary_op(OP_NEGATE)
 
         # Not
         if (byte == OP_NOT): 
             
-            a = pop()
+            # Type checking
+            if (type(peek(0)) != bool):
+                runtime_error("Operand must be a boolean.")
+                return
 
-            if (type(a) in [float, bool]):
-                push(bool(not a))
-            else:
-                runtime_error("Operand must be a number or a boolean.")
+            # Pop value to be compared
+            a = bool(pop())
+
+            # Push new boolean
+            push(bool(not a))
 
         # Not Equal
         if (byte == OP_NOT_EQUAL):
 
-            b = pop()
-            a = pop()
-
-            if (not (type(a) == type(b))): 
+            # Type checking
+            if (not(type(peek(0)) == type(peek(1)))):
                 runtime_error("Operands must be the same type.")
                 return
 
-            if ((type(a) == float and type(b) == float) or (type(a) == str and type(b) == str) or (type(a) == bool and type(b) == bool)):
-                push(bool(not (a == b)))
-            else:
-                runtime_error("Operands must be two numbers or two strings or two booleans.")
-
-        # Greater
-        if (byte == OP_GREATER):
-
+            # Pop values to be compared
             b = pop()
             a = pop()
 
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == float):
-                push(bool(a > b))
-            else:
-                runtime_error("Operands must be two numbers.")
-
-        # Greater Than
-        if (byte == OP_GREATER_THAN):
-
-            b = pop()
-            a = pop()
-
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == float):
-                push(bool(a >= b))
-            else:
-                runtime_error("Operands must be two numbers.")
+            # Compare
+            if (type(a) == str):   push(bool(not (a == b))) # String
+            if (type(a) == float): push(bool(not (a == b))) # Number
 
         # Less
-        if (byte == OP_LESS):
-
-            b = pop()
-            a = pop()
-
-            if (not (type(a) == type(b))):
-                print(type(a), type(b), a, b)
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == float):
-                push(bool(a < b))
-            else:
-                runtime_error("Operands must be two numbers.")
+        if (byte == OP_LESS): binary_op(OP_LESS)
         
         # Less Than
-        if (byte == OP_LESS_THAN):
+        if (byte == OP_LESS_THAN): binary_op(OP_LESS_THAN)
 
-            b = pop()
-            a = pop()
+        # Greater
+        if (byte == OP_GREATER): binary_op(OP_GREATER)
 
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == float):
-                push(bool(a <= b))
-            else:
-                runtime_error("Operands must be two numbers.")
+        # Greater Than
+        if (byte == OP_GREATER_THAN): binary_op(OP_GREATER_THAN)
 
         # Equals
         if (byte == OP_EQUALS):
 
-            b = pop()
-            a = pop()
-
-            if (not (type(a) == type(b))): 
+            # Type checking
+            if (not(type(peek(0)) == type(peek(1)))):
                 runtime_error("Operands must be the same type.")
                 return
 
-            if (type(a) == float):
+            # Pop values to be compared
+            b = pop()
+            a = pop()
+
+            # Compare
+            if (type(a) == float):  # Numbers
                 push(bool(a == b))
-            elif (type(a) == str):
+            elif (type(a) == str):  # Strings
                 push(bool(a == b))
-            elif (type(a) == bool):
+            elif (type(a) == bool): # Booleans
                 push(bool(a == b))
             else:
-                runtime_error("Operands must be two numbers or two strings or two booleans.")
+                runtime_error("Operands must be two numbers, two strings or two booleans.")
         
         # And
         if (byte == OP_AND):
 
+            # Type checking
+            if (type(peek(0)) != bool or type(peek(1)) != bool):
+                runtime_error("Operands must be two booleans.")
+                return
+
+            # Pop values to be compared
             b = pop()
             a = pop()
 
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == bool):
-                push(bool(a and b))
-            else:
-                runtime_error("Operands must be two booleans.")
+            # Push new boolean
+            push(bool(a and b))
 
         # Or
         if (byte == OP_OR):
 
+            # Type checking
+            if (type(peek(0)) != bool or type(peek(1)) != bool):
+                runtime_error("Operands must be two booleans.")
+                return
+
+            # Pop values to be compared
             b = pop()
             a = pop()
 
-            if (not (type(a) == type(b))): 
-                runtime_error("Operands must be the same type.")
-                return
-
-            if (type(a) == bool):
-                push(bool(a or b))
-            else:
-                runtime_error("Operands must be two booleans.")
+            # Push new boolean
+            push(bool(a or b))
 
         # Jump If False
         if (byte == OP_JUMP_IF_FALSE):
 
+            # Read jump offset
             offset = read_jump()
-            if (not bool(peek(0))): interpreter.index += offset
+
+            # If false, jump to that offset
+            if (not bool(peek(0))): 
+                interpreter.index += offset
 
         # Jump
         if (byte == OP_JUMP):
 
+            # Read jump offset
             offset = read_jump()
+
+            # Jump to that offset
             interpreter.index += offset
 
         # Pop
         if (byte == OP_POP):
+
+            # Just pop
             pop()
 
         # Set Global
         if (byte == OP_SET_GLOBAL):
 
+            # Read variable name
             name = str(read_constant())
+
+            # Set variable value
             interpreter.global_variables[name] = pop()
 
         # Get Global
         if (byte == OP_GET_GLOBAL):
 
+            # Read variable name
             name = str(read_constant())
+
+            # Push variable value
             push(interpreter.global_variables[name])
 
         # Set Local
         if (byte == OP_SET_LOCAL):
 
+            # Read variable slot
             slot = read_byte()
+
+            # Set variable value
             interpreter.local_variables[slot] = pop()
-            print(interpreter.local_variables[slot])
 
         # Get Local
         if (byte == OP_GET_LOCAL):
 
+            # Read variable slot
             slot = read_byte()
-            print("get", interpreter.local_variables[slot])
+
+            # Push variable value
             push(interpreter.local_variables[slot])
             
         # Print
         if (byte == OP_PRINT): 
             
+            # Pop value to be printed
             a = pop()
 
-            # Shitty way to show null instead of None
-            if (a == None):
-                print("null")
-            elif (a == True):
-                print("true")
-            elif (a == False):
-                print("false")
-            elif (type(a) == str):
+            # Print
+            if (a == None):                        print("null")  # null
+            elif (a == True  and type(a) == bool): print("true")  # true
+            elif (a == False and type(a) == bool): print("false") # false
+            elif (type(a) == str):                                # String
+
+                # Split all new lines and print each one
                 a = a.split("\\n")
 
                 for i in range(len(a)):
                     print(a[i])
-            else:
-                print(str(a))
+            else: # Anything
+                print(a)
 
         # Loop
         if (byte == OP_LOOP):
             
+            # Read jump offset
             offset = read_jump()
+
+            # Go back to that offset
             interpreter.index -= offset
 
         # Exit
         if (byte == OP_EXIT):
+            # Do nothing, just leave the loop
             break
-
-    print("\033[0m")

@@ -15,16 +15,14 @@ class Scanner():
 
 scanner = Scanner()
 
-# Keywords
+# Keywords tokens
 keywords = {
-    "and":      TOKEN_AND,
     "else":     TOKEN_ELSE,
     "false":    TOKEN_FALSE,
     "for":      TOKEN_FOR,
     "function": TOKEN_FUNCTION,
     "if":       TOKEN_IF,
     "null":     TOKEN_NULL,
-    "or":       TOKEN_OR,
     "print":    TOKEN_PRINT,
     "return":   TOKEN_RETURN,
     "true":     TOKEN_TRUE,
@@ -54,12 +52,14 @@ def make_error_token(message):
 # Is scanner end?
 def is_end():
 
+    # Current index is bigger than source length
     if (scanner.current >= scanner.length): return True
     return (scanner.source[scanner.current] == '\0')
 
 # Advance scanner
 def advance():
 
+    # Only advance if current index is not bigger than source length
     if (scanner.current < scanner.length): 
         scanner.current += 1
         scanner.column += 1
@@ -243,6 +243,11 @@ def scan_token():
         if (match('|')): return make_token(TOKEN_OR)           # ||
     elif (c == '"'):
         return make_string()  # String
+    elif (c in " \r\t#\n"):
+        # We probably found spacing here, so skip that spacing, scan again and 
+        # return that scanned token
+        skip_whitespace()
+        return scan_token()
 
     # Unexpected character
     return make_error_token("Unexpected character '{0}'.".format(c))

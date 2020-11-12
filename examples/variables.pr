@@ -1,6 +1,10 @@
-global a = "Hello! I'm a global variable :D"
-var b = "I'm global? >:o"
+# Global variables
+global a = "Hello! I'm a global variable :D";
+var    b = "I'm global? >:o";
+
+# Local variables
 {
-var c = "I'm local... :("
+    var c = "I'm local... :(";
 }
-print c;
+
+print c; # This will give an error, since c is local!

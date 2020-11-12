@@ -98,8 +98,6 @@ def match(kind):
     advance()
     return True
 
-
-
 # Emit Byte
 def emit_byte(byte):
     chunk_write(compiler.chunk, byte, compiler.previous.line, compiler.previous.column)
@@ -164,7 +162,10 @@ def patch_jump(offset):
 def emit_loop(start):
     
     emit_byte(OP_LOOP)
+
+    # Get the loop offset
     offset = compiler.chunk.count - start + 1
+
     emit_byte(offset)
 
 # Get token number
@@ -190,19 +191,20 @@ def grouping():
 # Literal
 def literal():
 
-    if (match(TOKEN_FALSE)):        emit_byte(OP_FALSE)
-    elif (match(TOKEN_TRUE)):       emit_byte(OP_TRUE)
-    elif (match(TOKEN_NULL)):       emit_byte(OP_NULL)
-    elif (match(TOKEN_NUMBER)):     emit_constant(get_number())
-    elif (match(TOKEN_STRING)):     emit_constant(get_string())
-    elif (match(TOKEN_LEFT_PAREN)): grouping()
-    elif (match(TOKEN_IDENTIFIER)): variable_assignment(True)
+    if (match(TOKEN_FALSE)):        emit_byte(OP_FALSE)         # false
+    elif (match(TOKEN_TRUE)):       emit_byte(OP_TRUE)          # true
+    elif (match(TOKEN_NULL)):       emit_byte(OP_NULL)          # null
+    elif (match(TOKEN_NUMBER)):     emit_constant(get_number()) # Number
+    elif (match(TOKEN_STRING)):     emit_constant(get_string()) # String
+    elif (match(TOKEN_LEFT_PAREN)): grouping()                  # Grouping Expression
+    elif (match(TOKEN_IDENTIFIER)): variable_assignment(True)   # Variable
     else:
         error_current("Syntax Error", "Unexpected token.")
 
 # Unary
 def unary():
 
+    # !, -
     while (compiler.current.kind in [TOKEN_BANG, TOKEN_MINUS]):
 
         advance()
@@ -218,6 +220,7 @@ def multiplication():
 
     unary()
 
+    # /, *
     while (compiler.current.kind in [TOKEN_SLASH, TOKEN_STAR]):
         
         advance()
@@ -231,6 +234,7 @@ def addition():
 
     multiplication()
 
+    # -, +
     while (compiler.current.kind in [TOKEN_MINUS, TOKEN_PLUS]):
         
         advance()
@@ -244,6 +248,7 @@ def comparison():
 
     addition()
 
+    # >, >=, <, <=, &&, ||
     while (compiler.current.kind in [TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL, TOKEN_OR, TOKEN_AND]):
         
         advance()
@@ -257,6 +262,7 @@ def equality():
 
     comparison()
 
+    # !=, ==
     while (compiler.current.kind in [TOKEN_BANG_EQUAL, TOKEN_EQUAL_EQUAL]):
         
         advance()
@@ -286,9 +292,11 @@ def block():
     # Begin scope
     begin_scope()
 
+    # Loop until a matching '}'
     while (not match(TOKEN_RIGHT_BRACE) and not match(TOKEN_END)):
         statement()
 
+    # No '}' found?
     if (compiler.previous.kind == TOKEN_END):
         error_current("Syntax Error", "Expect '}' after statement.")
 
@@ -298,21 +306,31 @@ def block():
 # If Statement
 def if_statement():
 
+    # Expect '(' after 'if' keyword
     consume(TOKEN_LEFT_PAREN, "Syntax Error", "Expect '(' after 'if'.")
+
+    # Condition
     grouping()
 
+    # Emit body jump
     then_jump = emit_jump(OP_JUMP_IF_FALSE)
     emit_byte(OP_POP)
+
+    # Statement
     statement()
 
+    # Emit else jump
     else_jump = emit_jump(OP_JUMP)
 
+    # Patch body jump
     patch_jump(then_jump)
     emit_byte(OP_POP)
 
+    # Else Statement?
     if (match(TOKEN_ELSE)):
         statement()
 
+    # Patch else jump
     patch_jump(else_jump)
 
 # Variable assignment
@@ -377,6 +395,7 @@ def variable_declaration(force_global = False):
     else:
         compiler.global_variables.append(compiler.previous.content)
 
+    # Assignment?
     if (match(TOKEN_EQUAL)): 
         expression()
         emit_bytes(opcode_set, variable)
@@ -407,17 +426,17 @@ def statement():
     # Check token kind
     token = compiler.previous.kind
 
-    if (token == TOKEN_PRINT):
+    if (token == TOKEN_PRINT):        # Print Statement
         print_statement()
-    elif (token == TOKEN_IF):
+    elif (token == TOKEN_IF):         # If Statement
         if_statement()
-    elif (token == TOKEN_LEFT_BRACE):
+    elif (token == TOKEN_LEFT_BRACE): # Block
         block()
-    elif (token == TOKEN_IDENTIFIER):
+    elif (token == TOKEN_IDENTIFIER): # Variable Assignment
         variable_assignment()
-    elif (token == TOKEN_VAR):
+    elif (token == TOKEN_VAR):        # Variable Declaration
         variable_declaration()
-    elif (token == TOKEN_GLOBAL):
+    elif (token == TOKEN_GLOBAL):     # Global Variable Declaration
         variable_declaration(True)
     else:
         error_current("Compile Error", "Expect statement.")
@@ -431,6 +450,7 @@ def compile(source):
     # Start Compiling
     advance()
 
+    # Loop until source end
     while (not match(TOKEN_END) and not compiler.had_error):
         statement()
 
